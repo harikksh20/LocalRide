@@ -21,19 +21,48 @@ from db import (
     get_booking_by_id,
 )
 
+
+# --------------------------------------------------
+# APP CONFIGURATION
+# --------------------------------------------------
+
 app = Flask(__name__)
+
+# Configure allowed frontend origins.
+# Local development works by default.
+# Add your Vercel URL later using LOCALRIDE_CORS_ORIGINS.
+
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "LOCALRIDE_CORS_ORIGINS",
+        "http://localhost:5173"
+    ).split(",")
+    if origin.strip()
+]
 
 CORS(
     app,
     resources={
         r"/api/*": {
-            "origins": ["http://localhost:5173"]
+            "origins": ALLOWED_ORIGINS
         }
     },
 )
 
 ALLOWED_VEHICLES = {"Auto", "Car", "Pickup", "Lorry"}
 TOKEN_SALT = "localride-driver-auth"
+
+
+# --------------------------------------------------
+# DATABASE INITIALIZATION
+# --------------------------------------------------
+
+# Initialize SQLite when Flask loads.
+# This is important because PythonAnywhere imports
+# the Flask application through its WSGI configuration.
+
+init_db()
 
 
 # --------------------------------------------------
@@ -737,11 +766,10 @@ def cancel_customer_booking(booking_id):
 
 
 # --------------------------------------------------
-# START SERVER
+# START LOCAL DEVELOPMENT SERVER
 # --------------------------------------------------
 
 if __name__ == "__main__":
-    init_db()
 
     if not os.environ.get("LOCALRIDE_SECRET_KEY"):
         raise RuntimeError(

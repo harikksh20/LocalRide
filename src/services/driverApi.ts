@@ -20,7 +20,15 @@ export type NewDriver = {
   password: string
 }
 
-const API_BASE_URL = 'http://127.0.0.1:5000/api'
+// API configuration:
+// Local development uses localhost by default.
+// Production uses the Vercel environment variable.
+
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://127.0.0.1:5000/api'
+).replace(/\/+$/, '')
+
 const DRIVER_TOKEN_KEY = 'localride-driver-token'
 
 type DriversResponse = {
@@ -57,6 +65,10 @@ function getDriverAuthHeaders(
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }
+
+// --------------------------------------------------
+// DRIVER MANAGEMENT
+// --------------------------------------------------
 
 export async function fetchDrivers(): Promise<RegisteredDriver[]> {
   const response = await fetch(`${API_BASE_URL}/drivers`)
@@ -97,6 +109,10 @@ export async function registerDriver(
 
   return data.driver
 }
+
+// --------------------------------------------------
+// DRIVER LOGIN
+// --------------------------------------------------
 
 export type DriverLoginResponse = {
   token: string

@@ -41,14 +41,29 @@ ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
-CORS(
-    app,
-    resources={
-        r"/api/*": {
-            "origins": ALLOWED_ORIGINS
-        }
-    },
-)
+# --------------------------------------------------
+# CORS CONFIGURATION
+# --------------------------------------------------
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin")
+
+    if origin in ALLOWED_ORIGINS:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = (
+            "GET, POST, PATCH, DELETE, OPTIONS"
+        )
+        response.headers["Access-Control-Allow-Headers"] = (
+            request.headers.get(
+                "Access-Control-Request-Headers",
+                "Content-Type, Authorization"
+            )
+        )
+        response.headers["Vary"] = "Origin"
+        response.headers["Access-Control-Max-Age"] = "86400"
+
+    return response
 
 ALLOWED_VEHICLES = {"Auto", "Car", "Pickup", "Lorry"}
 TOKEN_SALT = "localride-driver-auth"

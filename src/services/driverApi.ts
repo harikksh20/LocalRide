@@ -20,10 +20,7 @@ export type NewDriver = {
   password: string
 }
 
-// API configuration:
-// Local development uses localhost by default.
-// Production uses the Vercel environment variable.
-
+// API configuration
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
   'http://127.0.0.1:5000/api'
@@ -66,9 +63,7 @@ function getDriverAuthHeaders(
   }
 }
 
-// --------------------------------------------------
 // DRIVER MANAGEMENT
-// --------------------------------------------------
 
 export async function fetchDrivers(): Promise<RegisteredDriver[]> {
   const response = await fetch(`${API_BASE_URL}/drivers`)
@@ -110,9 +105,7 @@ export async function registerDriver(
   return data.driver
 }
 
-// --------------------------------------------------
 // DRIVER LOGIN
-// --------------------------------------------------
 
 export type DriverLoginResponse = {
   token: string
@@ -152,9 +145,7 @@ export async function loginDriver(
   }
 }
 
-// --------------------------------------------------
 // BOOKING TYPES
-// --------------------------------------------------
 
 export type NewBooking = {
   driverId: string
@@ -184,9 +175,7 @@ export type SavedBooking = {
   createdAt: string
 }
 
-// --------------------------------------------------
 // CREATE BOOKING
-// --------------------------------------------------
 
 export async function createBooking(
   booking: NewBooking,
@@ -216,9 +205,7 @@ export async function createBooking(
   return data.booking
 }
 
-// --------------------------------------------------
 // DRIVER BOOKING MANAGEMENT
-// --------------------------------------------------
 
 export async function fetchBookings(): Promise<SavedBooking[]> {
   const response = await fetch(`${API_BASE_URL}/bookings`, {
@@ -292,9 +279,7 @@ export async function updateBookingStatus(
   }
 }
 
-// --------------------------------------------------
 // CUSTOMER BOOKING HISTORY
-// --------------------------------------------------
 
 export async function fetchCustomerBookings(
   phone: string,

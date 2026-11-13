@@ -5,7 +5,6 @@ from math import isfinite
 from functools import wraps
 
 from flask import Flask, jsonify, request, g
-from flask_cors import CORS
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -28,18 +27,18 @@ from db import (
 
 app = Flask(__name__)
 
-# Configure allowed frontend origins.
-# Local development works by default.
-# Add your Vercel URL later using LOCALRIDE_CORS_ORIGINS.
-
 ALLOWED_ORIGINS = [
-    origin.strip()
+    origin.strip().rstrip("/")
     for origin in os.environ.get(
         "LOCALRIDE_CORS_ORIGINS",
-        "http://localhost:5173"
+        "http://localhost:5173,https://local-ride-kappa.vercel.app",
     ).split(",")
     if origin.strip()
 ]
+
+ALLOWED_VEHICLES = {"Auto", "Car", "Pickup", "Lorry"}
+TOKEN_SALT = "localride-driver-auth"
+
 
 # --------------------------------------------------
 # CORS CONFIGURATION
@@ -49,33 +48,31 @@ ALLOWED_ORIGINS = [
 def add_cors_headers(response):
     origin = request.headers.get("Origin")
 
-    if origin in ALLOWED_ORIGINS:
+    if origin and origin.rstrip("/") in ALLOWED_ORIGINS:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Methods"] = (
             "GET, POST, PATCH, DELETE, OPTIONS"
         )
-        response.headers["Access-Control-Allow-Headers"] = (
-            request.headers.get(
-                "Access-Control-Request-Headers",
-                "Content-Type, Authorization"
-            )
+
+        requested_headers = request.headers.get(
+            "Access-Control-Request-Headers"
         )
-        response.headers["Vary"] = "Origin"
+
+        response.headers["Access-Control-Allow-Headers"] = (
+            requested_headers
+            if requested_headers
+            else "Content-Type, Authorization"
+        )
+
         response.headers["Access-Control-Max-Age"] = "86400"
+        response.headers["Vary"] = "Origin"
 
     return response
-
-ALLOWED_VEHICLES = {"Auto", "Car", "Pickup", "Lorry"}
-TOKEN_SALT = "localride-driver-auth"
 
 
 # --------------------------------------------------
 # DATABASE INITIALIZATION
 # --------------------------------------------------
-
-# Initialize SQLite when Flask loads.
-# This is important because PythonAnywhere imports
-# the Flask application through its WSGI configuration.
 
 init_db()
 
@@ -776,7 +773,7 @@ def cancel_customer_booking(booking_id):
 
         return jsonify({
             "success": False,
-            "message": "Could not cancel booking",
+            "message": "Could not cancel customer booking",
         }), 500
 
 
@@ -785,7 +782,6 @@ def cancel_customer_booking(booking_id):
 # --------------------------------------------------
 
 if __name__ == "__main__":
-
     if not os.environ.get("LOCALRIDE_SECRET_KEY"):
         raise RuntimeError(
             "Set LOCALRIDE_SECRET_KEY before starting the server."
